@@ -1,0 +1,54 @@
+
+services:
+  mysql:
+    image: 'mysql:latest'
+    container_name: 'support-agent-mysql'
+
+    # Disable Spring Boot's automatic MySQL service connection
+    # Docker Compose automatic startup remains enabled
+    labels:
+      org.springframework.boot.ignore: "true"
+
+    environment:
+      MYSQL_DATABASE: mydatabase
+      MYSQL_USER: myuser
+      MYSQL_PASSWORD_FILE: /run/secrets/mysql_password
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql_root_password
+
+    secrets:
+      - mysql_password
+      - mysql_root_password
+
+    ports:
+      - '127.0.0.1:3306:3306'
+
+    volumes:
+      # Preserve existing MySQL database
+      - 'mysql-data:/var/lib/mysql'
+
+      # Database initialization scripts
+      - './db/init:/docker-entrypoint-initdb.d:ro'
+
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          MYSQL_PWD="$$(cat /run/secrets/mysql_root_password)"
+          mysql -h 127.0.0.1 -uroot -e "SELECT 1"
+          > /dev/null 2>&1
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+# Docker Compose Secrets
+secrets:
+  mysql_password:
+    file: ./secrets/mysql_password
+
+  mysql_root_password:
+    file: ./secrets/mysql_root_password
+
+# Persistent Database Storage
+volumes:
+  mysql-data:

@@ -1,3 +1,32 @@
+
 spring:
   application:
-    name: mcpserver
+    name: mcp-server
+
+  config:
+    import: "configtree:./secrets/"
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/mydatabase
+    username: myuser
+    password: ${mysql_password}
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+
+  ai:
+    mcp:
+      server:
+        name: support-agent-mcp-server
+        version: "0.0.1"
+        instructions: >-
+          Tools for an email support agent: look up customers,
+          orders and products; detect duplicate charges;
+          check warranty windows; review ticket history for
+          repeat failures; issue refunds; and log the resolution.
+        protocol: streamable
+
+server:
+  port: 8090
